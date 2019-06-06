@@ -7,7 +7,7 @@ positionalRequests = {
 }
 locationUrl = 'locations=' + str(positionalRequests['latitude']) + ',' + str(positionalRequests['longitude'])
 
-key = 'AIzaSyAE2pV0X5HZfrdz8HciK6kQN-SiDP3eHoE'
+key = '-'
 keyUrl = '&key=' + key
 
 url = 'https://maps.googleapis.com/maps/api/elevation/json?' + locationUrl + keyUrl
