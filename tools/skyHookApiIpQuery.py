@@ -1,7 +1,8 @@
-import urllib
-
 def infoFromIp(version, ip, key, user, prettyPrint = False):
-    # Get info from IP address.
+    # Get info from IP address using the skyHook ip location api. 
+
+    import urllib
+    import json
 
     versionString = "version=" + str(version)
     ipString = "&ip=" + str(ip)

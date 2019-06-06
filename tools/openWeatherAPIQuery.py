@@ -1,7 +1,9 @@
-import json
-import urllib
-
 def getWeatherObject(zipCode, apiKey):
+    # Gets weather from zip code and uses the open weather api. 
+    
+    import json
+    import urllib
+
     zipString = "zip=" + zipCode + ',us'
 
     keyString = "&appid=" + apiKey
