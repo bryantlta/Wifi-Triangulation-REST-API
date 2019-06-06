@@ -19,7 +19,6 @@ def ensure_str(output):
 def rssi_to_quality(rssi):
     return 2 * (rssi + 100)
 
-
 def split_escaped(string, separator):
     """Split a string on separator, ignoring ones escaped by backslashes."""
 

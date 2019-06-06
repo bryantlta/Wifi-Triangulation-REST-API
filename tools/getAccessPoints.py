@@ -2,9 +2,8 @@
 
 def scanAccessPoints():
     # Get all access points. 
-    
-    import access_pointsPackage as access
 
+    import access_pointsPackage as access
 
     wifi_scanner = access.get_scanner("wlp2s0")
     points = wifi_scanner.get_access_points()
@@ -13,3 +12,9 @@ def scanAccessPoints():
         print(p)
 
     return points
+
+def main():
+    return scanAccessPoints()
+
+if __name__ == '__main__':
+    main()
