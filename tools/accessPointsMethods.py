@@ -8,13 +8,15 @@ def scanAccessPoints():
     wifi_scanner = access.get_scanner()
     points = wifi_scanner.get_access_points()
 
-    for p in points:
-        print(p)
-
     return points
 
+def parseFromPoints(accessPoints):
+    values = [(point.ssid, point.bssid, point.quality) for point in accessPoints]
+    return values
+
 def main():
-    return scanAccessPoints()
+    points = scanAccessPoints()
+    return parseFromPoints(points)
 
 if __name__ == '__main__':
     main()
