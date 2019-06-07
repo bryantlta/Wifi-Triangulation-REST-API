@@ -28,7 +28,6 @@ def main():
     parser.add_argument('--key', dest='key', required=True)
     parser.add_argument('--user', dest='user', required=True)
 
-
     args = parser.parse_args()
     ip = str(args.ip)
     version = str(args.version)

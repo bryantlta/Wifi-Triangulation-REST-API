@@ -16,6 +16,8 @@ def getWeatherObject(zipCode, apiKey):
     return jsonResponse
 
 def main():
+    import argparse 
+    
     parser = argparse.ArgumentParser(description="Determine weather based on zip code.") 
     parser.add_argument('--z', dest='zipcode', required=True) 
     parser.add_argument('--apiKey', dest='apiKey', required=True)
