@@ -15,4 +15,3 @@ def postRequestJson(location_api_endPoint, json_string):
 
     postRequest = requests.post(location_api_endPoint, data = json_string, headers = header)
     return postRequest
-
