@@ -6,7 +6,7 @@ def main():
     # [skyHook API Key, deviceId, optional xmlFile]
     args = sys.argv
     points = scanAccessPoints()
-    xmlFile = accessPointsToXmlForSkyHook(points, args[1], args[2])
+    xmlFile = accessPointsToXmlForSkyHook(points, str(args[1]), str(args[2]))
     xmlString = readIn(xmlFile)
     api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
     request = postRequestXML(api_location_endPoint, xmlString)
@@ -27,23 +27,26 @@ def accessPointsToXmlForSkyHook(accessPoints, apiKey, deviceId, xmlFile = 'xmlRe
     # Location RQ values:
     LocationRQ = ElementTree.Element('LocationRQ')
 
-    LocationRQ.set('xlms', "http://skyhookwireless.com/wps/2005")
-    LocationRQ.set('version', "2.25")
+    LocationRQ.set('xmlns', "http://skyhookwireless.com/wps/2005")
+    LocationRQ.set('version', "2.26")
     LocationRQ.set('street-address-lookup', "full")
-    LocationRQ.set('timezone-lookup', "true")
-
+    
     authentication = ElementTree.SubElement(LocationRQ, 'authentication')
-    authentication.set('key', apiKey)
-    authentication.set('username', deviceId)
+    authentication.set('version', '2.2')
+
+    key = ElementTree.SubElement(authentication, 'key')
+    key.set('key', apiKey)
+    key.set('username', deviceId)
+    
 
     for point in accessPoints:
         accessPoint = ElementTree.SubElement(LocationRQ, 'access-point')
-        
-        bssid = point.bssid.replace(':','')
-        quality = point.quality
 
-        accessPoint.set('mac', bssid)
-        accessPoint.set('signal-strength', quality)
+        bssid = ElementTree.SubElement(accessPoint, 'mac')
+        bssid.text = str(point.bssid).replace(':', '')
+
+        quality = ElementTree.SubElement(accessPoint, 'signal-strength')
+        quality.text = str(point.quality)
     
     mydata = ElementTree.tostring(LocationRQ, encoding="unicode") 
     myfile = open(xmlFile, "w")

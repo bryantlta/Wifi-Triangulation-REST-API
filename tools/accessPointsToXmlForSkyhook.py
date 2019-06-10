@@ -9,7 +9,7 @@ def accessPointsToXmlForSkyHook(accessPoints, apiKey, deviceId, xmlFile):
     # Location RQ values:
     LocationRQ = ElementTree.Element('LocationRQ')
 
-    LocationRQ.set('xlms', "http://skyhookwireless.com/wps/2005")
+    LocationRQ.set('xmlns', "http://skyhookwireless.com/wps/2005")
     LocationRQ.set('version', "2.25")
     LocationRQ.set('street-address-lookup', "full")
     LocationRQ.set('timezone-lookup', "true")
