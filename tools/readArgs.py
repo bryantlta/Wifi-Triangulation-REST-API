@@ -2,7 +2,7 @@
 #   (assuming that file being read is the second arg (first being this py file)), 
 #   find that file, and read that file into string.
 
-def readArgs(k):
+def readInArgs(k):
 	import sys
 
 	in_filename = sys.argv[k]
@@ -10,8 +10,12 @@ def readArgs(k):
 	string = in_file.read()
 	return string 
 
+def readAllArgs():
+	import sys
+	return sys.argv
+
 def main():
-    return readArgs(1)
+    return readInArgs(1)
 
 if __name__ == 'main':
     main()

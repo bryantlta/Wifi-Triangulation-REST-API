@@ -27,7 +27,7 @@ def accessPointsToXmlForSkyHook(accessPoints, apiKey, deviceId, xmlFile):
         accessPoint.set('mac', bssid)
         accessPoint.set('signal-strength', quality)
     
-    mydata = ElementTree.tostring(data, encoding="unicode") 
+    mydata = ElementTree.tostring(LocationRQ, encoding="unicode") 
     myfile = open(xmlFile, "w")
     myfile.write(mydata)
 
