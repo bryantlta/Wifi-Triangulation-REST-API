@@ -12,14 +12,12 @@ def main():
     points = accessPointsMethods.scanAccessPoints()
 
     xmlFile = accessPointsToXmlForSkyhook.accessPointsToXmlForSkyHook(points, args[1], args[2])
-
     in_file = open(xmlFile, 'r')
-	xmlString = xmlFile.read()
-
-	api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
-    postRequests.postRequestXML(api_location_endPoint, xmlString)
-    print(postRequest.text)
-    return postRequest
+    xmlString = in_file.read()
+    api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
+    pr = postRequests.postRequestXML(api_location_endPoint, xmlString)
+    print(pr.text)
+    return pr
 
 
 

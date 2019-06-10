@@ -3,7 +3,7 @@
 def scanAccessPoints():
     # Get all access points for any wifi adapter. 
 
-    import access_pointsPackage as access
+    from tools import access_pointsPackage as access
 
     wifi_scanner = access.get_scanner()
     points = wifi_scanner.get_access_points()
