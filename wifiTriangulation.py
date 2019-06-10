@@ -19,7 +19,5 @@ def main():
     print(pr.text)
     return pr
 
-
-
 if __name__ == "__main__":
     main()

@@ -4,14 +4,24 @@ import requests
 
 def main():
     # [skyHook API Key, deviceId, optional xmlFile]
-    args = sys.argv
-    points = scanAccessPoints()
-    xmlFile = accessPointsToXmlForSkyHook(points, str(args[1]), str(args[2]))
-    xmlString = readIn(xmlFile)
-    api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
-    request = postRequestXML(api_location_endPoint, xmlString)
-    print(request.text)
-    return request 
+    if connected_to_internet():
+        args = sys.argv
+        points = scanAccessPoints()
+        xmlFile = accessPointsToXmlForSkyHook(points, str(args[1]), str(args[2]))
+        xmlString = readIn(xmlFile)
+        api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
+        request = postRequestXML(api_location_endPoint, xmlString)
+        print(request.text)
+        return request 
+
+# https://stackoverflow.com/questions/3764291/checking-network-connection
+def connected_to_internet(url='http://www.google.com/', timeout=5):
+    try:
+        _ = requests.get(url, timeout=timeout)
+        return True
+    except requests.ConnectionError:
+        print("No internet connection available.")
+    return False
 
 def scanAccessPoints():
     # Get all access points for any wifi adapter. 
