@@ -1,17 +1,13 @@
 # https://stackoverflow.com/questions/3764291/checking-network-connection
-def connected_to_internet(url='http://www.google.com/', timeout=5):
-    import requests
+def internet_on():
+    # Try/Except statements for Python 2/3: https://stackoverflow.com/questions/3764291/checking-network-connection/29854274#29854274
+    try: 
+        import urllib2 as urllib
+    except:
+        import urllib.request as urllib
+
     try:
-        _ = requests.get(url, timeout=timeout)
+        urllib.urlopen('http://google.com', timeout=1)
         return True
-    except requests.ConnectionError:
-        print("No internet connection available.")
-    return False
-
-def main():
-    return connected_to_internet()
-
-if __name__ == '__main__':
-    main()
-
-
+    except: 
+        return False

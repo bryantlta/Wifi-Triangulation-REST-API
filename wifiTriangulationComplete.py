@@ -1,27 +1,38 @@
 from tools import access_pointsPackage as access
 import sys 
+
+# Try/Except statements for Python 2/3: https://stackoverflow.com/questions/3764291/checking-network-connection/29854274#29854274
+try: 
+    import urllib2 as urllib
+except:
+    import urllib.request as urllib
+
 import requests
 
 def main():
     # [skyHook API Key, deviceId, optional xmlFile]
-    if connected_to_internet():
+    if internet_on():
         args = sys.argv
         points = scanAccessPoints()
         xmlFile = accessPointsToXmlForSkyHook(points, str(args[1]), str(args[2]))
         xmlString = readIn(xmlFile)
         api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
         request = postRequestXML(api_location_endPoint, xmlString)
-        print(request.text)
+    
+        try: 
+            print(request.text)
+        except: 
+            print request.text
+
         return request 
 
 # https://stackoverflow.com/questions/3764291/checking-network-connection
-def connected_to_internet(url='http://www.google.com/', timeout=5):
+def internet_on():
     try:
-        _ = requests.get(url, timeout=timeout)
+        urllib.urlopen('http://google.com', timeout=1)
         return True
-    except requests.ConnectionError:
-        print("No internet connection available.")
-    return False
+    except urllib.URLError as err: 
+        return False
 
 def scanAccessPoints():
     # Get all access points for any wifi adapter. 
