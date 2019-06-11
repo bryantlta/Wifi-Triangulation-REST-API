@@ -45,7 +45,12 @@ def scanAccessPoints():
 def hashEncoder():
     # Encodes the platform's node using sha256. 
     nodeName = platform.node()
-    encodedNode = hashlib.sha256(nodeName).hexdigest()
+
+    try:
+        encodedNode = hashlib.sha256(nodeName).hexdigest()
+    except:
+        encodedNode = hashlib.sha256(nodeName.encode('UTF-8')).hexdigest()
+        
     encodedNode = encodedNode.upper()
     return encodedNode
 
