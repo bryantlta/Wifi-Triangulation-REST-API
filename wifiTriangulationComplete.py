@@ -1,37 +1,38 @@
-from tools import access_pointsPackage as access
-import sys 
-
+import sys
+import access_pointsPackage as access
+ 
 # Try/Except statements for Python 2/3: https://stackoverflow.com/questions/3764291/checking-network-connection/29854274#29854274
 try: 
-    import urllib2 as urllib
+    import urllib2 as urllib2
 except:
-    import urllib.request as urllib
+    import urllib.request as urllib2
 
+import urllib
 import requests
+import xmlToDict
+import json 
+
+#import requests
 
 def main():
-    # [skyHook API Key, deviceId, optional xmlFile]
+    # [skyHook API Key, optional deviceId, optional boolean for accesspoints, optional xmlFile]
     if internet_on():
         args = sys.argv
         points = scanAccessPoints()
-        xmlFile = accessPointsToXmlForSkyHook(points, str(args[1]), str(args[2]))
+        # numPoints = len(points)
+        xmlFile = accessPointsToXmlForSkyHook(points, str(args[1]), 'JFSLIFJE87')
         xmlString = readIn(xmlFile)
         api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
         request = postRequestXML(api_location_endPoint, xmlString)
-    
-        try: 
-            print(request.text)
-        except: 
-            print request.text
-
-        return request 
+        print(request.text)
+        return request
 
 # https://stackoverflow.com/questions/3764291/checking-network-connection
 def internet_on():
     try:
-        urllib.urlopen('http://google.com', timeout=1)
+        urllib2.urlopen('http://google.com', timeout=1)
         return True
-    except urllib.URLError as err: 
+    except urllib2.URLError: 
         return False
 
 def scanAccessPoints():
@@ -39,7 +40,7 @@ def scanAccessPoints():
 
     wifi_scanner = access.get_scanner()
     points = wifi_scanner.get_access_points()
-
+    print('AccessPoints: ' + str(len(points)))
     return points
 
 def accessPointsToXmlForSkyHook(accessPoints, apiKey, deviceId, xmlFile = 'xmlRequest.xml'):
@@ -69,9 +70,15 @@ def accessPointsToXmlForSkyHook(accessPoints, apiKey, deviceId, xmlFile = 'xmlRe
         quality = ElementTree.SubElement(accessPoint, 'signal-strength')
         quality.text = str(point.quality)
     
-    mydata = ElementTree.tostring(LocationRQ, encoding="unicode") 
-    myfile = open(xmlFile, "w")
-    myfile.write(mydata)
+    try:
+        mydata = ElementTree.tostring(LocationRQ)
+        myfile = open(xmlFile, "w")
+        myfile.write(mydata)
+    except:
+        mydata = ElementTree.tostring(LocationRQ, encoding = 'unicode') 
+        myfile = open(xmlFile, "w")
+        myfile.write(mydata)
+
     return xmlFile 
 
 def readIn(fileName):
@@ -80,10 +87,21 @@ def readIn(fileName):
 	return string 
 
 def postRequestXML(location_api_endPoint, xml_string):
+    import requests
     header = {'Content-Type': 'text/xml'}
 
-    postRequest = requests.post(location_api_endPoint, data = xml_string, headers = header)
-    return postRequest
+    response = requests.post(location_api_endPoint, data = xml_string, headers = header)
+    return response
+    """req = urllib2.Request(location_api_endPoint, data=xml_string)
+    openObj = urllib2.urlopen(req)
+    response = openObj.read()
+    print(response)
+    return response"""
+
+def xmlToJson(xml_string):
+    orderedDict = xmlToDict.parse(xml_string)
+    jsonObj = json.dumps(orderedDict)
+    return jsonObj
 
 if __name__ == '__main__':
     main()

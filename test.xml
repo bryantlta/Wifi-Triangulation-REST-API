@@ -1,9 +1,0 @@
-<LocationRQ xmlns="http://skyhookwireless.com/wps/2005"
-            version="2.26"
-            street-address-lookup="full"
-            timezone-lookup="true">
-
-<authentication version="2.2">
-        <key key="YOUR API KEY HERE"
-        username="DEVICE SERIAL NUM, MAC ADDRESS, OR OTHER UNIQUE ID HERE"/>
-</authentication>
