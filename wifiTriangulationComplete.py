@@ -11,24 +11,24 @@ import urllib
 import requests
 import xmlToDict
 import json 
-
-#import requests
+import requests
+import hashlib
+import platform
 
 def main():
     # [skyHook API Key, optional deviceId, optional boolean for accesspoints, optional xmlFile]
     if internet_on():
-        args = sys.argv
-        points = scanAccessPoints()
-        # numPoints = len(points)
-        xmlFile = accessPointsToXmlForSkyHook(points, str(args[1]), 'JFSLIFJE87')
-        xmlString = readIn(xmlFile)
-        api_location_endPoint = 'https://global.skyhookwireless.com/wps2/location'
-        request = postRequestXML(api_location_endPoint, xmlString)
-        print(request.text)
-        return request
+        points = scanAccessPoints() # Obtain Access Point objects.
+        xmlFile = accessPointsToXmlForSkyHook(points, str(sys.argv[1]), hashEncoder()) # Access Points to XML file.
+        xmlString = readIn(xmlFile) # Read from the XML File. 
+        response = postRequestXML('https://global.skyhookwireless.com/wps2/location', xmlString) # POST Request
+        jsonString = xmlToJson(response._content) # XML string to Json String 
+        jsonStringToObj(jsonString) # Write Json String to .json file.
+        return jsonString
 
 # https://stackoverflow.com/questions/3764291/checking-network-connection
 def internet_on():
+    # Checks whether the internet is on. 
     try:
         urllib2.urlopen('http://google.com', timeout=1)
         return True
@@ -37,13 +37,20 @@ def internet_on():
 
 def scanAccessPoints():
     # Get all access points for any wifi adapter. 
-
     wifi_scanner = access.get_scanner()
     points = wifi_scanner.get_access_points()
-    print('AccessPoints: ' + str(len(points)))
+    # print('AccessPoints: ' + str(len(points)))
     return points
 
+def hashEncoder():
+    # Encodes the platform's node using sha256. 
+    nodeName = platform.node()
+    encodedNode = hashlib.sha256(nodeName).hexdigest()
+    encodedNode = encodedNode.upper()
+    return encodedNode
+
 def accessPointsToXmlForSkyHook(accessPoints, apiKey, deviceId, xmlFile = 'xmlRequest.xml'):
+    # Turning access point objects to xml for the skyhook api. 
     import xml.etree.ElementTree as ElementTree
 
     # Location RQ values:
@@ -82,26 +89,31 @@ def accessPointsToXmlForSkyHook(accessPoints, apiKey, deviceId, xmlFile = 'xmlRe
     return xmlFile 
 
 def readIn(fileName):
+    # Reading in (turning into string) a file.
 	in_file = open(fileName, 'r')
 	string = in_file.read()
 	return string 
 
 def postRequestXML(location_api_endPoint, xml_string):
+    # Sending a POST request to a URL. 
     import requests
     header = {'Content-Type': 'text/xml'}
 
     response = requests.post(location_api_endPoint, data = xml_string, headers = header)
     return response
-    """req = urllib2.Request(location_api_endPoint, data=xml_string)
-    openObj = urllib2.urlopen(req)
-    response = openObj.read()
-    print(response)
-    return response"""
 
 def xmlToJson(xml_string):
+    # Converting XML string to JSON string.
     orderedDict = xmlToDict.parse(xml_string)
     jsonObj = json.dumps(orderedDict)
+    print(jsonObj)
     return jsonObj
+
+def jsonStringToObj(jsonString):
+    # Writing into a JSON file the JSON String. 
+    jsonFile = open("skyhook.json", "w+")
+    jsonFile.write(jsonString)
+    jsonFile.close()
 
 if __name__ == '__main__':
     main()
