@@ -1,4 +1,5 @@
-#!/Users/machine72/anaconda3/bin/python3
+#!/usr/local/opt/python@2/bin/python2.7
+
 # -*- coding: utf-8 -*-
 import re
 import sys
