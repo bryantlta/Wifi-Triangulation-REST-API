@@ -23,14 +23,27 @@ var getAccessPoints = function(){
   })
 }
 
-var fs = require('fs')
+var findComputerName = function() {
+  var os = require('os')
+  var hostaddress = os.hostname()
+  console.log("Hostname: " + hostaddress)
+  return hostaddress
+}
+
+var getHash = function(name) {
+  var cryto = require('crypto');
+  var hash = crypto.createHmac('sha256', name)
+                  .digest('hex');
+  console.log("Hash " + hash);
+  return hash 
+}
+
 var xml2js = require('xml2js')
 
-var getJson = function(html){
+var getJson = function(xmlString){
   var parser = new xml2js.Parse();
 
-  fs.readFile(__dirname + html, function(err, data) {
-    parser.parseString(data, function (err, result) {
+    parser.parseString(xmlString, function (err, result) {
       console.dir(result);
       console.log('Done');
       return JSON.stringify(result)
@@ -40,15 +53,34 @@ var getJson = function(html){
 
 var json = getJson('index.html')
 
-root = element('entry')
-root.set('xmlns', 'http://www.w3.org/2005/Atom...')
+var parsePoints = function() {
+  var locationRQ = element('LocationRQ')
+  locationRQ.set('xmlns', "http://skyhookwireless.com/wps/2005")
+  locationRQ.set('version', "2.26")
+  locationRQ.set('street-address-lookup', "full")
 
-tenantId = subElement(root, 'TenantId');
-tenantId.text = '12345';
+  var authentication = subElement(locationRQ, 'authentication')
+  authentication.set('version', '2.2')
 
-etree = new ElementTree(root)
-xml = etree.write({'xml_declaration': false});
-console.log(xml);
+  key = subElement(authentication, 'key')
+  key.set('key', apiKey)
+  key.set('username', deviceId)
+
+  var point;
+  for (point in accessPoints) {
+    var accessPoint = subElement(locationRQ, 'access-point')
+
+    var bssid = subElement(accessPoint, 'mac')
+    bssid.text = str(point.bssid).replace(':', '') //Check syntax
+
+    var quality = ubElement(accessPoint, 'signal-strength')
+    quality.text = str(point.quality)
+  }
+
+  etree = new ElementTree(locationRQ)
+  xml = etree.write({'xml_declaration': false});
+  console.log(xml);
+}
 
 // PROJECT IDEA. We can try connecting to networks programmatically
 // Brute force guess passwords. Outputs the password that works!
@@ -65,6 +97,8 @@ app.post('/key',  urlencodedParser, function(req, res){
   // POST request to Skyhook
   // XML response to JSON
   // POST RESPONSE the JSON and display important information.
+  points = getAccessPoints();
+
 
   req.body.key
   res.render(...esj, {body: req.body}
