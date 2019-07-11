@@ -14,13 +14,24 @@ import json
 import requests
 import hashlib
 import platform
+import time 
+import inspect 
+
+key = 'eJwz5DQ0AAFLA2MLzmojMzcXIxNDR11LFxdTXQsDFwtdZ1MDY10nZ0NTU1NXR0cDY7daABFhCyk'
+
+def checkPyVersion():
+    print(platform.python_version())
+    return platform.python_version()
+
+def inspectModules():
+    print(inspect.getouterframes(inspect.currentframe()))
 
 def main():
     # [skyHook API Key, optional deviceId, optional boolean for accesspoints, optional xmlFile]
     if internet_on():
         points = scanAccessPoints() # Obtain Access Point objects.
-        xmlFile = accessPointsToXmlForSkyHook(points, str(sys.argv[1]), hashEncoder()) # Access Points to XML file.
-        xmlString = readIn(xmlFile) # Read from the XML File. 
+        xmlFile = accessPointsToXmlForSkyHook(points, key, hashEncoder()) # Access Points to XML file.
+        xmlString = readIn('xmlRequest.xml') # Read from the XML File. 
         response = postRequestXML('https://global.skyhookwireless.com/wps2/location', xmlString) # POST Request
         jsonString = xmlToJson(response._content) # XML string to Json String 
         jsonStringToObj(jsonString) # Write Json String to .json file.
@@ -105,6 +116,7 @@ def postRequestXML(location_api_endPoint, xml_string):
     header = {'Content-Type': 'text/xml'}
 
     response = requests.post(location_api_endPoint, data = xml_string, headers = header)
+    print(response._content)
     return response
 
 def xmlToJson(xml_string):
@@ -121,4 +133,6 @@ def jsonStringToObj(jsonString):
     jsonFile.close()
 
 if __name__ == '__main__':
+    #start_time = time.time()
     main()
+    #print("--- %s seconds ---" % (time.time() - start_time))

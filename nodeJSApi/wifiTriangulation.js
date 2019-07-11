@@ -1,105 +1,130 @@
-var express = require('express.js')
-var app = express()
+var main = function() {
+    return checkConnection();
+};
 
-app.set('view engine', 'ejs')
-
-var bodyParser = require('body-parser')
-var urlencodedParser = bodyParser.urlencoded{enabled: false}
+var checkConnection = function(){
+    var request = require('request');
+    return request('http://www.google.com', function (error, response, body) {
+        if (error) {
+            return false;
+        } else {
+            return getAccessPoints();
+        };
+    });
+};
 
 var getAccessPoints = function(){
-  //Import NPM node-wifi.
-  var wifi = require('node-wifi')
+        var wifi = require('node_modules/node-wifi');
 
-  // Initialize the wifi object.
-  wifi.init({
-    iface: null
-  })
+        wifi.init({
+            iface: null,
+        });
 
-  // Access Points PROMISE.
-  wifi.scan().then(function (networks) {
-    return networks
-  }).catch(function (error) {
-    console.log(error)
-  })
-}
+        return wifi.scan(function(err, networks) {
+            if (err) {
+                console.log(err);
+            } else {
+                return findComputerName(networks);
+            }
+        });
+};
 
-var findComputerName = function() {
-  var os = require('os')
-  var hostaddress = os.hostname()
-  console.log("Hostname: " + hostaddress)
-  return hostaddress
-}
+var findComputerName = function(networks) {
+    // https://stackoverflow.com/questions/42151493/how-to-get-client-computer-name-in-node-js
+    var os = require("os");
+    var hostaddress = os.hostname();
+    return getHash(networks, hostaddress);
+};
 
-var getHash = function(name) {
-  var cryto = require('crypto');
-  var hash = crypto.createHmac('sha256', name)
-                  .digest('hex');
-  console.log("Hash " + hash);
-  return hash 
-}
+var getHash = function(networks, name) {
+    //https://nodejs.org/api/crypto.html#crypto_crypto
+    if (name === undefined){
+        var name = "";
+    } else {
+        const crypto = require('crypto');
+        const hash = crypto.createHmac('sha256', name)
+                        .digest('hex');
+        return getKey(networks, hash);
+    }
+};
 
-var xml2js = require('xml2js')
+var getKey = function(networks, hash) {
+    if (process.argv.length < 3) {
+        return null;
+    } else {
+        return parsePoints(networks, process.argv[2], hash);
+    };
+};
 
-var getJson = function(xmlString){
-  var parser = new xml2js.Parse();
+// npm elementtree
+var parsePoints = function(accessPoints, apiKey, deviceId) {
+    var elementTree = require('elementtree');
 
-    parser.parseString(xmlString, function (err, result) {
-      console.dir(result);
-      console.log('Done');
-      return JSON.stringify(result)
-    })
-  })
-}
+    var XML = elementTree.XML;
+    var ElementTree = elementTree.ElementTree;
+    var element = elementTree.Element;
+    var subElement = elementTree.SubElement;
 
-var json = getJson('index.html')
+    var locationRQ = element('LocationRQ');
+    locationRQ.set('xmlns', "http://skyhookwireless.com/wps/2005");
+    locationRQ.set('version', '2.26');
+    locationRQ.set('street-address-lookup', 'full');
 
-var parsePoints = function() {
-  var locationRQ = element('LocationRQ')
-  locationRQ.set('xmlns', "http://skyhookwireless.com/wps/2005")
-  locationRQ.set('version', "2.26")
-  locationRQ.set('street-address-lookup', "full")
+    var authentication = subElement(locationRQ, 'authentication');
+    authentication.set('version', '2.2');
 
-  var authentication = subElement(locationRQ, 'authentication')
-  authentication.set('version', '2.2')
+    key = subElement(authentication, 'key');
+    key.set('key', apiKey);
+    key.set('username', deviceId.toUpperCase());
 
-  key = subElement(authentication, 'key')
-  key.set('key', apiKey)
-  key.set('username', deviceId)
+    var point;
+    for (point in accessPoints) {
+        var accessPoint = subElement(locationRQ, 'access-point');
 
-  var point;
-  for (point in accessPoints) {
-    var accessPoint = subElement(locationRQ, 'access-point')
+        var bssid = subElement(accessPoint, 'mac');
+        var fixBssid = accessPoints[point].bssid.replace(/:/g,'');
+        bssid.text = fixBssid;
 
-    var bssid = subElement(accessPoint, 'mac')
-    bssid.text = str(point.bssid).replace(':', '') //Check syntax
+        var quality = subElement(accessPoint, 'signal-strength');
+        quality.text = accessPoints[point].quality.toString();
+    };
 
-    var quality = ubElement(accessPoint, 'signal-strength')
-    quality.text = str(point.quality)
-  }
+    etree = new ElementTree(locationRQ);
+    xml = etree.write({'xml_declaration': false});
+    return skyHookRequest('https://global.skyhookwireless.com/wps2/location', xml.toString());
+};
 
-  etree = new ElementTree(locationRQ)
-  xml = etree.write({'xml_declaration': false});
-  console.log(xml);
-}
+var skyHookRequest = function(location_api_endPoint, xmlString){
+    var request = require('request');
 
-// PROJECT IDEA. We can try connecting to networks programmatically
-// Brute force guess passwords. Outputs the password that works!
+    //https://stackoverflow.com/questions/19059997/node-js-request-library-post-text-xml-to-body
+    return request.post(
+        {url: location_api_endPoint,
+        body : xmlString,
+        headers: {'Content-Type': 'text/xml'}
+        },
+        function (error, response, body) {        
+            if (!error && response.statusCode == 200) {
+                return xmlToJson(body);
+            } else {
+                console.log('error:', error); // Print the error if one occurred
+                console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+                console.log('body:', body); // Print the HTML for the Google homepage.
+            }
+        }
+    );
+};
 
-app.get('/', function(req, res){
-  res.sendFile(__dirname + 'index.html')
-}
+var xmlToJson = function(xmlString) {
+    var xml2js = require('xml2js');
 
-app.post('/key',  urlencodedParser, function(req, res){
-  // Get access points.
-  //  all of the access point names and qualities.
-  // Grab computer name and encode it.
-  // Turn access points to XML string.
-  // POST request to Skyhook
-  // XML response to JSON
-  // POST RESPONSE the JSON and display important information.
-  points = getAccessPoints();
+    var parser = new xml2js.Parser();
 
+    return parser.parseString(xmlString, function(error, result){
+        var final = JSON.stringify(result);
+        console.log(final)
+        return final
+    });
+};
 
-  req.body.key
-  res.render(...esj, {body: req.body}
-})
+main();
