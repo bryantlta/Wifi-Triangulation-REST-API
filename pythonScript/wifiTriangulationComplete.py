@@ -17,8 +17,6 @@ import platform
 import time 
 import inspect 
 
-key = 'eJwz5DQ0AAFLA2MLzmojMzcXIxNDR11LFxdTXQsDFwtdZ1MDY10nZ0NTU1NXR0cDY7daABFhCyk'
-
 def checkPyVersion():
     print(platform.python_version())
     return platform.python_version()
